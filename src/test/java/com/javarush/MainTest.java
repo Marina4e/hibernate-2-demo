@@ -2,35 +2,55 @@ package com.javarush;
 
 
 import com.javarush.domain.Customer;
-import org.hibernate.Session;
+import com.javarush.operation.CustomerOperations;
+import com.javarush.operation.FilmOperations;
+import com.javarush.operation.RentalOperations;
 import org.hibernate.SessionFactory;
-import org.junit.jupiter.api.BeforeEach;
+import org.hibernate.cfg.Configuration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-class MainTest {
+public class MainTest {
+    private static SessionFactory sessionFactory;
+    private static CustomerOperations customerOperations;
+    private static RentalOperations rentalOperations;
+    private static FilmOperations filmOperations;
 
-    @Mock
-    private SessionFactory sessionFactory;
+    @BeforeAll
+    public static void setUp() {
+        sessionFactory = new Configuration().configure().buildSessionFactory();
+        customerOperations = new CustomerOperations(sessionFactory);
+        rentalOperations = new RentalOperations(sessionFactory);
+        filmOperations = new FilmOperations(sessionFactory);
+    }
 
-    private Main main;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        main = new Main();
-        main.setSessionFactory(sessionFactory);
+    @AfterAll
+    public static void tearDown() {
+        sessionFactory.close();
     }
 
     @Test
-    void testCreateCustomer() {
-        when(sessionFactory.getCurrentSession()).thenReturn(mock(Session.class));
-        Customer actualCustomer = main.createCustomer();
-        assertNotNull(actualCustomer);
+    public void testCreateCustomer() {
+        Customer customer = customerOperations.createCustomer();
+        assertNotNull(customer);
+    }
+
+    @Test
+    public void testCustomerRentInventory() {
+        Customer customer = customerOperations.createCustomer();
+        rentalOperations.customerRentInventory(customer);
+    }
+
+    @Test
+    public void testCustomerReturnInventoryToStore() {
+        rentalOperations.customerReturnInventoryToStore();
+    }
+
+    @Test
+    public void testNewFilmWasMade() {
+        filmOperations.newFilmWasMade();
     }
 }
